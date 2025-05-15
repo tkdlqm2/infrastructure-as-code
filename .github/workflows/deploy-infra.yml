@@ -1,0 +1,125 @@
+# .github/workflows/deploy-infra.yml
+name: Deploy Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'database/**'
+      - 'message-queue/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'database/**'
+      - 'message-queue/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+jobs:
+  deploy-database:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, 'database') || contains(github.event.pull_request.title, 'database') || contains(join(github.event.pull_request.labels.*.name), 'database') || contains(github.event.paths, 'database/')
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+
+      - name: Set up kubeconfig
+        uses: azure/k8s-set-context@v3
+        with:
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+      - name: Deploy Order Database
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+          
+          # 환경에 따라 values 파일 선택
+          values_file="database/order-db/order-db-values-${{ github.event.inputs.environment || 'dev' }}.yaml"
+          
+          # 이미 설치되어 있는지 확인
+          if helm ls -n database | grep order-db; then
+            echo "Upgrading order-db..."
+            helm upgrade order-db bitnami/postgresql \
+              --namespace database \
+              -f $values_file
+          else
+            echo "Installing order-db..."
+            helm install order-db bitnami/postgresql \
+              --namespace database \
+              --create-namespace \
+              -f $values_file
+          fi
+
+      - name: Deploy Payment Database
+        run: |
+          # 환경에 따라 values 파일 선택
+          values_file="database/payment-db/payment-db-values-${{ github.event.inputs.environment || 'dev' }}.yaml"
+          
+          # 이미 설치되어 있는지 확인
+          if helm ls -n database | grep payment-db; then
+            echo "Upgrading payment-db..."
+            helm upgrade payment-db bitnami/postgresql \
+              --namespace database \
+              -f $values_file
+          else
+            echo "Installing payment-db..."
+            helm install payment-db bitnami/postgresql \
+              --namespace database \
+              --create-namespace \
+              -f $values_file
+          fi
+
+  deploy-kafka:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, 'kafka') || contains(github.event.pull_request.title, 'kafka') || contains(join(github.event.pull_request.labels.*.name), 'kafka') || contains(github.event.paths, 'message-queue/')
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+
+      - name: Set up kubeconfig
+        uses: azure/k8s-set-context@v3
+        with:
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+      - name: Deploy Kafka
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+          
+          # 환경에 따라 values 파일 선택
+          values_file="message-queue/kafka/kafka-values-${{ github.event.inputs.environment || 'dev' }}.yaml"
+          
+          # 이미 설치되어 있는지 확인
+          if helm ls -n message-queue | grep kafka; then
+            echo "Upgrading kafka..."
+            helm upgrade kafka bitnami/kafka \
+              --namespace message-queue \
+              -f $values_file
+          else
+            echo "Installing kafka..."
+            helm install kafka bitnami/kafka \
+              --namespace message-queue \
+              --create-namespace \
+              -f $values_file
+          fi
