@@ -12,7 +12,6 @@ orderdb:
       limits:
         memory: 512Mi
         cpu: 200m
-  primary:
     persistence:
       size: 5Gi
 
@@ -25,7 +24,6 @@ paymentdb:
       limits:
         memory: 512Mi
         cpu: 200m
-  primary:
     persistence:
       size: 5Gi
 
@@ -66,3 +64,25 @@ frontend:
     limits:
       memory: 128Mi
       cpu: 100m
+
+# 모니터링 설정
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: false
+  grafana:
+    enabled: false
+
+# 인그레스 설정
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations: {}
+  tls:
+    enabled: false
+    secretName: "order-payment-dev-tls"
+
+# 서비스 계정 설정
+serviceAccount:
+  create: true
+  annotations: {}

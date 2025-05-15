@@ -11,8 +11,9 @@ echo "Deploying to environment: $ENV"
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
 
-# 1. 의존성 업데이트
+# 1. 의존성 업데이트 (Chart.lock 파일 삭제 후 의존성 업데이트)
 echo "Updating Helm dependencies..."
+rm -f ./charts/order-payment-system/Chart.lock
 helm dependency update ./charts/order-payment-system
 
 # 2. Helm 차트 배포

@@ -16,28 +16,183 @@ namespaces:
 # 주문 데이터베이스 설정
 orderdb:
   enabled: true
-  namespaceOverride: "database"  # 이 부분 추가
+  namespaceOverride: "database"
   auth:
     username: orderuser
     password: orderpassword
     database: orderdb
-  # ... 나머지 설정 ...
+    existingSecret: "order-db-credentials"
+  service:
+    port: 5432
+  primary:
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 250m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+    persistence:
+      size: 10Gi
 
 # 결제 데이터베이스 설정
 paymentdb:
   enabled: true
-  namespaceOverride: "database"  # 이 부분 추가
+  namespaceOverride: "database"
   auth:
     username: paymentuser
     password: paymentpassword
     database: paymentdb
-  # ... 나머지 설정 ...
+    existingSecret: "payment-db-credentials"
+  service:
+    port: 5432
+  primary:
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 250m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+    persistence:
+      size: 10Gi
 
 # Kafka 설정
 kafka:
   enabled: true
-  namespaceOverride: "message-queue"  # 이 부분 추가
+  namespaceOverride: "message-queue"
   replicaCount: 1
-  # ... 나머지 설정 ...
+  service:
+    port: 9092
+  zookeeper:
+    service:
+      port: 2181
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 200m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+  persistence:
+    enabled: true
+    size: 20Gi
 
-# ... 나머지 설정 ...
+# 모니터링 설정
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: false
+    configMapName: "prometheus-config"
+  grafana:
+    enabled: false
+
+# 인그레스 설정
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations: {}
+  tls:
+    enabled: false
+    secretName: "order-payment-tls"
+
+# 서비스 설정
+orderService:
+  replicaCount: 2
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilization: 70
+    targetMemoryUtilization: 80
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 200m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+
+paymentService:
+  replicaCount: 2
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilization: 70
+    targetMemoryUtilization: 80
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 200m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+
+frontend:
+  replicaCount: 2
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilization: 70
+    targetMemoryUtilization: 80
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 100m
+    limits:
+      memory: 256Mi
+      cpu: 200m
+
+# 네트워크 정책 설정
+networkPolicies:
+  enabled: true
+
+# 서비스 연결 설정
+services:
+  frontend:
+    name: "frontend-service"
+    port: 80
+  order:
+    name: "order-service"
+    port: 8080
+  payment:
+    name: "payment-service"
+    port: 8080
+  orderdb:
+    name: "orderdb-postgresql"
+  paymentdb:
+    name: "paymentdb-postgresql"
+  kafka:
+    name: "kafka"
+
+# 배포 전략 설정
+deploymentStrategy:
+  type: "RollingUpdate"
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+
+# 영구 볼륨 설정
+persistence:
+  enabled: true
+  storageClass: "standard"
+
+# 서비스 계정 설정
+serviceAccount:
+  create: true
+  annotations: {}
+
+# 프로브 설정
+probes:
+  readiness:
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 5
+    path: /actuator/health
+  liveness:
+    initialDelaySeconds: 120
+    periodSeconds: 20
+    timeoutSeconds: 5
+    path: /actuator/health
