@@ -1,0 +1,68 @@
+global:
+  environment: dev
+  domain: dev.order-payment.example.com
+
+# 리소스 제한 축소
+orderdb:
+  primary:
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 512Mi
+        cpu: 200m
+  primary:
+    persistence:
+      size: 5Gi
+
+paymentdb:
+  primary:
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 512Mi
+        cpu: 200m
+  primary:
+    persistence:
+      size: 5Gi
+
+kafka:
+  replicaCount: 1
+  persistence:
+    size: 10Gi
+  zookeeper:
+    persistence:
+      size: 5Gi
+
+orderService:
+  replicaCount: 1
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 200m
+
+paymentService:
+  replicaCount: 1
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 200m
+
+frontend:
+  replicaCount: 1
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 50m
+    limits:
+      memory: 128Mi
+      cpu: 100m

@@ -1,0 +1,39 @@
+global:
+  storageClass: standard
+
+replicas: 3
+heapOpts: "-Xmx1g -Xms1g"
+
+persistence:
+  enabled: true
+  size: 100Gi
+
+resources:
+  requests:
+    memory: 1Gi
+    cpu: 500m
+  limits:
+    memory: 2Gi
+    cpu: 1000m
+
+zookeeper:
+  enabled: true
+  replicaCount: 3
+  persistence:
+    enabled: true
+    size: 20Gi
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 200m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+
+metrics:
+  kafka:
+    enabled: true
+  jmx:
+    enabled: true
+  serviceMonitor:
+    enabled: true

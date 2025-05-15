@@ -1,0 +1,15 @@
+auth:
+  username: paymentuser
+  database: paymentdb
+  existingSecret: db-credentials
+
+primary:
+  persistence:
+    size: 5Gi
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 200m

@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payment-config
+  labels:
+    {{- include "payment-service.labels" . | nindent 4 }}
+data:
+  APPLICATION_PORT: "{{ .Values.config.port }}"
+  SPRING_PROFILES_ACTIVE: "{{ .Values.config.profile }}"
+  LOGGING_LEVEL_ROOT: "{{ .Values.config.loggingLevel }}"
+  LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: "{{ .Values.config.loggingLevel }}"
+  DATABASE_HOST: "{{ .Values.config.databaseHost }}"
+  DATABASE_PORT: "{{ .Values.config.databasePort }}"
+  DATABASE_NAME: "{{ .Values.config.databaseName }}"
+  KAFKA_BOOTSTRAP_SERVERS: "{{ .Values.config.kafkaBootstrapServers }}"
+  application.yml: |
+    server:
+      port: {{ .Values.config.port }}
+    
+    spring:
+      application:
+        name: payment-service
+      datasource:
+        url: jdbc:postgresql://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
+        driver-class-name: org.postgresql.Driver
+      jpa:
+        hibernate:
+          ddl-auto: update
+        show-sql: false
+        properties:
+          hibernate:
+            dialect: org.hibernate.dialect.PostgreSQLDialect
+      kafka:
+        bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+        consumer:
+          group-id: payment-group
+          key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+          value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+        producer:
+          key-serializer: org.apache.kafka.common.serialization.StringSerializer
+          value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,info,metrics

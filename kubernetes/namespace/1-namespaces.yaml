@@ -1,0 +1,40 @@
+# 1-namespaces.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: frontend
+  labels:
+    app: order-payment-system
+    tier: frontend
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: order-service
+  labels:
+    app: order-payment-system
+    tier: backend
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: payment-service
+  labels:
+    app: order-payment-system
+    tier: backend
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: database
+  labels:
+    app: order-payment-system
+    tier: data
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: message-queue
+  labels:
+    app: order-payment-system
+    tier: messaging

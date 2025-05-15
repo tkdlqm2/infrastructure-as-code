@@ -1,0 +1,48 @@
+# 9-database-pv.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: order-db-pv
+  labels:
+    type: local
+    app: order-db
+spec:
+  storageClassName: standard
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/order-db"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: payment-db-pv
+  labels:
+    type: local
+    app: payment-db
+spec:
+  storageClassName: standard
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/payment-db"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: kafka-pv
+  labels:
+    type: local
+    app: kafka
+spec:
+  storageClassName: standard
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/kafka"

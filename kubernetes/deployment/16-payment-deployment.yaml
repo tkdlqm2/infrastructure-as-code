@@ -1,0 +1,105 @@
+# 16-payment-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+  namespace: payment-service
+  labels:
+    app: payment-service
+spec:
+  replicas: 2  # Active-Active 구성을 위한 최소 2개 복제본
+  selector:
+    matchLabels:
+      app: payment-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: payment-service
+    spec:
+      containers:
+      - name: payment-service
+        image: yourregistry/payment-service:latest  # 실제 이미지로 교체 필요
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_CONFIG_LOCATION
+          value: "classpath:/application.yml,/config/application.yml"
+        - name: SERVER_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: payment-config
+              key: APPLICATION_PORT
+        - name: SPRING_PROFILES_ACTIVE
+          valueFrom:
+            configMapKeyRef:
+              name: payment-config
+              key: SPRING_PROFILES_ACTIVE
+        - name: LOGGING_LEVEL_ROOT
+          valueFrom:
+            configMapKeyRef:
+              name: payment-config
+              key: LOGGING_LEVEL_ROOT
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:postgresql://payment-db-service.database.svc.cluster.local:5432/paymentdb"
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: payment-secrets
+              key: DATABASE_USER
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: payment-secrets
+              key: DATABASE_PASSWORD
+        - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              name: payment-config
+              key: KAFKA_BOOTSTRAP_SERVERS
+        - name: PG_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: payment-secrets
+              key: PG_API_KEY
+        - name: PG_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: payment-secrets
+              key: PG_SECRET_KEY
+        volumeMounts:
+        - name: config-volume
+          mountPath: /config
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 120
+          periodSeconds: 20
+          timeoutSeconds: 5
+      volumes:
+      - name: config-volume
+        configMap:
+          name: payment-config
+          items:
+          - key: application.yml
+            path: application.yml

@@ -1,0 +1,42 @@
+# 26-ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: order-payment-ingress
+  namespace: frontend
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"  # TLS 인증서 발급을 위한 설정 (선택 사항)
+spec:
+  tls:
+  - hosts:
+    - order-payment.example.com  # 실제 도메인으로 변경 필요
+    secretName: order-payment-tls
+  rules:
+  - host: order-payment.example.com  # 실제 도메인으로 변경 필요
+    http:
+      paths:
+      - path: /(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend-service
+            port:
+              number: 80
+      - path: /api/orders(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: order-service
+            port:
+              number: 8080
+      - path: /api/payments(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: payment-service
+            port:
+              number: 8080

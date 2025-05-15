@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-config
+  labels:
+    {{- include "order-service.labels" . | nindent 4 }}
+data:
+  APPLICATION_PORT: "{{ .Values.config.port }}"
+  SPRING_PROFILES_ACTIVE: "{{ .Values.config.profile }}"
+  LOGGING_LEVEL_ROOT: "{{ .Values.config.loggingLevel }}"
+  LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: "{{ .Values.config.loggingLevel }}"
+  DATABASE_HOST: "{{ .Values.config.databaseHost }}"
+  DATABASE_PORT: "{{ .Values.config.databasePort }}"
+  DATABASE_NAME: "{{ .Values.config.databaseName }}"
+  KAFKA_BOOTSTRAP_SERVERS: "{{ .Values.config.kafkaBootstrapServers }}"
+  PAYMENT_SERVICE_URL: "{{ .Values.config.paymentServiceUrl }}"
+  application.yml: |
+    server:
+      port: {{ .Values.config.port }}
+    
+    spring:
+      application:
+        name: order-service
+      datasource:
+        url: jdbc:postgresql://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
+        driver-class-name: org.postgresql.Driver
+      jpa:
+        hibernate:
+          ddl-auto: update
+        show-sql: false
+        properties:
+          hibernate:
+            dialect: org.hibernate.dialect.PostgreSQLDialect
+      kafka:
+        bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+        producer:
+          key-serializer: org.apache.kafka.common.serialization.StringSerializer
+          value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,info,metrics

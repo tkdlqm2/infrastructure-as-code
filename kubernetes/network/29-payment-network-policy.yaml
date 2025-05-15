@@ -1,0 +1,61 @@
+# 29-payment-network-policy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: payment-network-policy
+  namespace: payment-service
+spec:
+  podSelector:
+    matchLabels:
+      app: payment-service
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: frontend
+      podSelector:
+        matchLabels:
+          app: frontend
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: order-service
+      podSelector:
+        matchLabels:
+          app: order-service
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system  # 시스템 네임스페이스에서 인그레스 컨트롤러 접근 허용
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: database
+      podSelector:
+        matchLabels:
+          app: payment-db
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: message-queue
+      podSelector:
+        matchLabels:
+          app: kafka
+    ports:
+    - protocol: TCP
+      port: 9092
+  # 외부 결제 게이트웨이 접근을 허용 (실제 IP 주소로 변경 필요)
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+    ports:
+    - protocol: TCP
+      port: 443

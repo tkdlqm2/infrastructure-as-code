@@ -1,0 +1,84 @@
+global:
+  environment: prod
+  domain: order-payment.example.com
+
+# 리소스 증가 및 고가용성 설정
+orderdb:
+  primary:
+    resources:
+      requests:
+        memory: 1Gi
+        cpu: 500m
+      limits:
+        memory: 2Gi
+        cpu: 1000m
+  primary:
+    persistence:
+      size: 50Gi
+
+paymentdb:
+  primary:
+    resources:
+      requests:
+        memory: 1Gi
+        cpu: 500m
+      limits:
+        memory: 2Gi
+        cpu: 1000m
+  primary:
+    persistence:
+      size: 50Gi
+
+kafka:
+  replicaCount: 3
+  persistence:
+    size: 100Gi
+  zookeeper:
+    replicaCount: 3
+    persistence:
+      size: 20Gi
+
+orderService:
+  replicaCount: 3
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 500m
+    limits:
+      memory: 2Gi
+      cpu: 1000m
+  autoscaling:
+    minReplicas: 3
+    maxReplicas: 20
+
+paymentService:
+  replicaCount: 3
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 500m
+    limits:
+      memory: 2Gi
+      cpu: 1000m
+  autoscaling:
+    minReplicas: 3
+    maxReplicas: 20
+
+frontend:
+  replicaCount: 3
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 200m
+    limits:
+      memory: 512Mi
+      cpu: 400m
+  autoscaling:
+    minReplicas: 3
+    maxReplicas: 20
+
+monitoring:
+  prometheus:
+    enabled: true
+  grafana:
+    enabled: true

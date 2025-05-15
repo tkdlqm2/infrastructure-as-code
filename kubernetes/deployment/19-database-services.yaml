@@ -1,0 +1,28 @@
+# 19-database-services.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-db-service
+  namespace: database
+spec:
+  selector:
+    app: order-db
+  ports:
+  - port: 5432
+    targetPort: 5432
+    protocol: TCP
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-db-service
+  namespace: database
+spec:
+  selector:
+    app: payment-db
+  ports:
+  - port: 5432
+    targetPort: 5432
+    protocol: TCP
+  type: ClusterIP

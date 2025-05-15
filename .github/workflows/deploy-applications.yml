@@ -1,0 +1,59 @@
+name: Deploy Applications
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'deployment/**'
+      - 'network/**'
+      - 'kubernetes/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'deployment/**'
+      - 'network/**'
+      - 'kubernetes/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+jobs:
+  deploy-apps:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Set up kubeconfig
+        uses: azure/k8s-set-context@v3
+        with:
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+      - name: Deploy applications
+        run: |
+          # 환경 설정
+          ENV="${{ github.event.inputs.environment || 'dev' }}"
+          
+          # 배포 스크립트 실행
+          chmod +x ./scripts/deploy-all.sh
+          ./scripts/deploy-all.sh $ENV
+
+      - name: Verify deployments
+        run: |
+          # 배포 상태 확인
+          kubectl rollout status deployment/order-service -n order-service
+          kubectl rollout status deployment/payment-service -n payment-service
+          kubectl rollout status deployment/frontend -n frontend

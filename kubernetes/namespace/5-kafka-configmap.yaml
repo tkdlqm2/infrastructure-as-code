@@ -1,0 +1,28 @@
+# 5-kafka-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-config
+  namespace: message-queue
+data:
+  KAFKA_BROKER_ID: "1"
+  KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+  KAFKA_LISTENERS: "PLAINTEXT://:9092"
+  KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-service.message-queue.svc.cluster.local:9092"
+  KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+  KAFKA_DELETE_TOPIC_ENABLE: "true"
+  KAFKA_DEFAULT_REPLICATION_FACTOR: "1"
+  KAFKA_NUM_PARTITIONS: "3"
+  KAFKA_LOG_RETENTION_HOURS: "168"  # 7 days
+  KAFKA_LOG_SEGMENT_BYTES: "1073741824"  # 1GB
+  server.properties: |
+    broker.id=${KAFKA_BROKER_ID}
+    zookeeper.connect=${KAFKA_ZOOKEEPER_CONNECT}
+    listeners=${KAFKA_LISTENERS}
+    advertised.listeners=${KAFKA_ADVERTISED_LISTENERS}
+    auto.create.topics.enable=${KAFKA_AUTO_CREATE_TOPICS_ENABLE}
+    delete.topic.enable=${KAFKA_DELETE_TOPIC_ENABLE}
+    default.replication.factor=${KAFKA_DEFAULT_REPLICATION_FACTOR}
+    num.partitions=${KAFKA_NUM_PARTITIONS}
+    log.retention.hours=${KAFKA_LOG_RETENTION_HOURS}
+    log.segment.bytes=${KAFKA_LOG_SEGMENT_BYTES}

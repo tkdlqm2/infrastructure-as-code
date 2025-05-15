@@ -1,0 +1,37 @@
+global:
+  storageClass: standard
+
+replicas: 1
+heapOpts: "-Xmx512m -Xms512m"
+
+persistence:
+  enabled: true
+  size: 10Gi
+
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 200m
+  limits:
+    memory: 1Gi
+    cpu: 500m
+
+zookeeper:
+  enabled: true
+  replicaCount: 1
+  persistence:
+    enabled: true
+    size: 5Gi
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 200m
+
+metrics:
+  kafka:
+    enabled: true
+  jmx:
+    enabled: true

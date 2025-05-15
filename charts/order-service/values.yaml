@@ -1,0 +1,58 @@
+# 기본 설정
+replicaCount: 2
+
+image:
+  repository: yourregistry/order-service
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 8080
+
+# 환경 설정
+config:
+  port: "8080"
+  profile: "production"
+  loggingLevel: "INFO"
+  databaseHost: "order-db-service.database.svc.cluster.local"
+  databasePort: "5432"
+  databaseName: "orderdb"
+  kafkaBootstrapServers: "kafka-service.message-queue.svc.cluster.local:9092"
+  paymentServiceUrl: "http://payment-service.payment-service.svc.cluster.local:8080"
+
+# 시크릿 설정
+secrets:
+  databaseUser: "orderuser"
+  databasePassword: "orderpassword"
+  jwtSecret: "orderservice-jwt-secret-key-123456"
+
+# 리소스 설정
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "200m"
+  limits:
+    memory: "1Gi"
+    cpu: "500m"
+
+# 오토스케일링 설정
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilization: 70
+  targetMemoryUtilization: 80
+
+# 프로브 설정
+probes:
+  readiness:
+    path: /actuator/health
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 5
+  liveness:
+    path: /actuator/health
+    initialDelaySeconds: 120
+    periodSeconds: 20
+    timeoutSeconds: 5
