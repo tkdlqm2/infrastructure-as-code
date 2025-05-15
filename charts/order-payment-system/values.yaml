@@ -3,6 +3,14 @@ global:
   environment: dev
   domain: order-payment.example.com
   imageRegistry: yourregistry
+  timestamp: ""
+  postgresql:
+    auth:
+      # existingSecret을 사용하도록 설정
+      existingSecret: "db-credentials"
+      secretKeys:
+        adminPasswordKey: "postgres-password"
+        userPasswordKey: "user-password"
 
 # 네임스페이스 설정
 namespaces:
@@ -16,12 +24,14 @@ namespaces:
 # 주문 데이터베이스 설정
 orderdb:
   enabled: true
+  fullname: orderdb-postgresql
   namespaceOverride: "database"
   auth:
-    username: orderuser
-    password: orderpassword
-    database: orderdb
-    existingSecret: "order-db-credentials"
+  # existingSecret 사용
+  existingSecret: "order-db-credentials"
+  secretKeys:
+    adminPasswordKey: "postgres-password"
+    userPasswordKey: "user-password"
   service:
     port: 5432
   primary:
@@ -33,17 +43,21 @@ orderdb:
         memory: 1Gi
         cpu: 500m
     persistence:
-      size: 10Gi
-
+      existingClaim: ""
+      forcePassword: false
+      extraEnvVars:
+        - name: POSTGRESQL_UPGRADE_BYPASS_PASSWORD_CHECK
+          value: "yes"
 # 결제 데이터베이스 설정
 paymentdb:
   enabled: true
+  fullname: paymentdb-postgresql
   namespaceOverride: "database"
   auth:
-    username: paymentuser
-    password: paymentpassword
-    database: paymentdb
     existingSecret: "payment-db-credentials"
+    secretKeys:
+      adminPasswordKey: "postgres-password"
+      userPasswordKey: "user-password"
   service:
     port: 5432
   primary:
@@ -55,11 +69,15 @@ paymentdb:
         memory: 1Gi
         cpu: 500m
     persistence:
-      size: 10Gi
-
+      existingClaim: ""
+      forcePassword: false
+      extraEnvVars:
+        - name: POSTGRESQL_UPGRADE_BYPASS_PASSWORD_CHECK
+          value: "yes"
 # Kafka 설정
 kafka:
   enabled: true
+  fullname: kafka
   namespaceOverride: "message-queue"
   replicaCount: 1
   service:
@@ -99,6 +117,10 @@ ingress:
 # 서비스 설정
 orderService:
   replicaCount: 2
+  image:
+    tag: "latest"
+    pullPolicy: "Always"
+  loggingLevel: "INFO"
   autoscaling:
     enabled: true
     minReplicas: 2
@@ -115,6 +137,10 @@ orderService:
 
 paymentService:
   replicaCount: 2
+  image:
+    tag: "latest"
+    pullPolicy: "Always"
+  loggingLevel: "INFO"
   autoscaling:
     enabled: true
     minReplicas: 2
@@ -131,6 +157,9 @@ paymentService:
 
 frontend:
   replicaCount: 2
+  image:
+    tag: "latest"
+    pullPolicy: "Always"
   autoscaling:
     enabled: true
     minReplicas: 2
@@ -162,10 +191,13 @@ services:
     port: 8080
   orderdb:
     name: "orderdb-postgresql"
+    port: 5432
   paymentdb:
     name: "paymentdb-postgresql"
+    port: 5432
   kafka:
     name: "kafka"
+    port: 9092
 
 # 배포 전략 설정
 deploymentStrategy:
@@ -196,3 +228,9 @@ probes:
     periodSeconds: 20
     timeoutSeconds: 5
     path: /actuator/health
+
+# 시크릿 설정
+secrets:
+  jwtSecret: "orderservice-jwt-secret-key-123456"
+  pgApiKey: "pg-test-api-key-1234567890"
+  pgSecretKey: "pg-test-secret-key-abcdefghijk1234567890"

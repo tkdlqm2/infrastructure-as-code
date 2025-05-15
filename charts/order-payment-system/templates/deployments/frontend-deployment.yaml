@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: {{ .Values.namespaces.frontend }}
+  labels:
+    app: frontend
+    {{- include "order-payment-system.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.frontend.replicaCount }}
+  selector:
+    matchLabels:
+      app: frontend
+  strategy:
+    type: {{ .Values.deploymentStrategy.type }}
+    rollingUpdate:
+      maxSurge: {{ .Values.deploymentStrategy.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.deploymentStrategy.rollingUpdate.maxUnavailable }}
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: "{{ .Values.global.imageRegistry }}/order-payment-frontend:{{ .Values.frontend.image.tag | default "latest" }}"
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy | default "Always" }}
+          ports:
+            - containerPort: {{ .Values.services.frontend.port }}
+          env:
+            - name: REACT_APP_API_URL
+              value: "http://{{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local"
+            - name: REACT_APP_ENVIRONMENT
+              value: "{{ .Values.global.environment }}"
+            - name: REACT_APP_VERSION
+              value: "{{ .Chart.AppVersion }}"
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d
+          resources:
+            {{- toYaml .Values.frontend.resources | nindent 10 }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.services.frontend.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.services.frontend.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 3
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: frontend-config
+            items:
+              - key: nginx.conf
+                path: default.conf
