@@ -16,149 +16,28 @@ namespaces:
 # 주문 데이터베이스 설정
 orderdb:
   enabled: true
+  namespaceOverride: "database"  # 이 부분 추가
   auth:
     username: orderuser
     password: orderpassword
     database: orderdb
-  primary:
-    persistence:
-      size: 10Gi
-    resources:
-      requests:
-        memory: 256Mi
-        cpu: 200m
-      limits:
-        memory: 1Gi
-        cpu: 500m
+  # ... 나머지 설정 ...
 
 # 결제 데이터베이스 설정
 paymentdb:
   enabled: true
+  namespaceOverride: "database"  # 이 부분 추가
   auth:
     username: paymentuser
     password: paymentpassword
     database: paymentdb
-  primary:
-    persistence:
-      size: 10Gi
-    resources:
-      requests:
-        memory: 256Mi
-        cpu: 200m
-      limits:
-        memory: 1Gi
-        cpu: 500m
+  # ... 나머지 설정 ...
 
 # Kafka 설정
 kafka:
   enabled: true
+  namespaceOverride: "message-queue"  # 이 부분 추가
   replicaCount: 1
-  persistence:
-    enabled: true
-    size: 20Gi
-  zookeeper:
-    enabled: true
-    persistence:
-      enabled: true
-      size: 8Gi
-  externalAccess:
-    enabled: false
+  # ... 나머지 설정 ...
 
-# 주문 서비스 설정
-orderService:
-  enabled: true
-  replicaCount: 2
-  image:
-    repository: yourregistry/order-service
-    tag: latest
-  service:
-    type: ClusterIP
-    port: 8080
-  resources:
-    requests:
-      memory: 512Mi
-      cpu: 200m
-    limits:
-      memory: 1Gi
-      cpu: 500m
-  autoscaling:
-    enabled: true
-    minReplicas: 2
-    maxReplicas: 10
-    targetCPUUtilization: 70
-    targetMemoryUtilization: 80
-
-# 결제 서비스 설정
-paymentService:
-  enabled: true
-  replicaCount: 2
-  image:
-    repository: yourregistry/payment-service
-    tag: latest
-  service:
-    type: ClusterIP
-    port: 8080
-  resources:
-    requests:
-      memory: 512Mi
-      cpu: 200m
-    limits:
-      memory: 1Gi
-      cpu: 500m
-  autoscaling:
-    enabled: true
-    minReplicas: 2
-    maxReplicas: 10
-    targetCPUUtilization: 70
-    targetMemoryUtilization: 80
-
-# 프론트엔드 설정
-frontend:
-  enabled: true
-  replicaCount: 2
-  image:
-    repository: yourregistry/order-payment-frontend
-    tag: latest
-  service:
-    type: ClusterIP
-    port: 80
-  resources:
-    requests:
-      memory: 128Mi
-      cpu: 100m
-    limits:
-      memory: 256Mi
-      cpu: 200m
-  autoscaling:
-    enabled: true
-    minReplicas: 2
-    maxReplicas: 10
-    targetCPUUtilization: 70
-    targetMemoryUtilization: 80
-
-# Ingress 설정
-ingress:
-  enabled: true
-  className: nginx
-  annotations:
-    kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/use-regex: "true"
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-  tls:
-    enabled: true
-    secretName: order-payment-tls
-  hostname: order-payment.example.com
-
-# 네트워크 정책
-networkPolicy:
-  enabled: true
-
-# 모니터링 설정
-monitoring:
-  enabled: true
-  prometheus:
-    enabled: true
-  grafana:
-    enabled: false
+# ... 나머지 설정 ...

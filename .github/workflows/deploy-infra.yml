@@ -50,7 +50,8 @@ jobs:
           helm repo update
           
           # 환경에 따라 values 파일 선택
-          values_file="database/order-db/order-db-values-${{ github.event.inputs.environment || 'dev' }}.yaml"
+          values_file="kubernetes/database/order-db/order-db-values-${{ github.event.inputs.environment || 'dev' }}.yaml"         
+          #          values_file="database/order-db/order-db-values-${{ github.event.inputs.environment || 'dev' }}.yaml"
           
           # 이미 설치되어 있는지 확인
           if helm ls -n database | grep order-db; then

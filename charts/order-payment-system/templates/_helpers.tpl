@@ -16,3 +16,15 @@ kubernetes.io/metadata.name: {{ . }}
 {{- define "order-payment-system.domain" -}}
 {{- .Values.global.domain -}}
 {{- end -}}
+
+
+{{/*
+Get the namespace for a specific service
+*/}}
+{{- define "order-payment-system.serviceNamespace" -}}
+{{- if .namespaceOverride -}}
+{{- .namespaceOverride -}}
+{{- else -}}
+{{- .Values.global.namespace | default .Release.Namespace -}}
+{{- end -}}
+{{- end -}}

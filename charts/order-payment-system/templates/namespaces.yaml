@@ -43,7 +43,6 @@ metadata:
     tier: messaging
     {{- include "order-payment-system.labels" . | nindent 4 }}
 ---
-  {{- if .Values.monitoring.enabled }}
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -52,4 +51,3 @@ metadata:
     app: order-payment-system
     tier: monitoring
     {{- include "order-payment-system.labels" . | nindent 4 }}
-  {{- end }}
