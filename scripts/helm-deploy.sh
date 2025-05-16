@@ -16,6 +16,21 @@ echo "Updating Helm dependencies..."
 rm -f ./charts/order-payment-system/Chart.lock
 helm dependency update ./charts/order-payment-system
 
+# 기존 비밀번호 가져오기 (이미 설치된 경우)
+POSTGRES_PARAMS=""
+if helm ls -n default | grep -q "order-payment-${ENV}"; then
+  echo "Getting existing database passwords..."
+
+  # PostgreSQL 관리자 비밀번호 가져오기
+  if kubectl get secret --namespace "database" db-credentials &> /dev/null; then
+    POSTGRES_PASSWORD=$(kubectl get secret --namespace "database" db-credentials -o jsonpath="{.data.postgres-password}" | base64 -d)
+    if [[ ! -z "$POSTGRES_PASSWORD" ]]; then
+      POSTGRES_PARAMS="--set global.postgresql.auth.postgresPassword=${POSTGRES_PASSWORD}"
+      echo "PostgreSQL administrator password retrieved successfully"
+    fi
+  fi
+fi
+
 # Helm 차트 배포
 echo "Deploying Order-Payment System with Helm..."
 RELEASE_NAME="order-payment-${ENV}"
@@ -28,6 +43,7 @@ if helm ls -n default | grep -q $RELEASE_NAME; then
     -f ./charts/order-payment-system/values-${ENV}.yaml \
     --set global.environment=$ENV \
     --set global.timestamp=$(date +%s) \
+    $POSTGRES_PARAMS \
     --timeout 10m
 else
   echo "Installing new release: $RELEASE_NAME"

@@ -27,11 +27,13 @@ orderdb:
   fullname: orderdb-postgresql
   namespaceOverride: "database"
   auth:
-  # existingSecret 사용
-  existingSecret: "order-db-credentials"
-  secretKeys:
-    adminPasswordKey: "postgres-password"
-    userPasswordKey: "user-password"
+    username: orderuser
+    password: orderpassword
+    database: orderdb
+    existingSecret: "order-db-credentials"
+    secretKeys:
+      adminPasswordKey: "postgres-password"
+      userPasswordKey: "user-password"
   service:
     port: 5432
   primary:
@@ -44,16 +46,20 @@ orderdb:
         cpu: 500m
     persistence:
       existingClaim: ""
-      forcePassword: false
-      extraEnvVars:
-        - name: POSTGRESQL_UPGRADE_BYPASS_PASSWORD_CHECK
-          value: "yes"
+    forcePassword: false
+    extraEnvVars:
+      - name: POSTGRESQL_UPGRADE_BYPASS_PASSWORD_CHECK
+        value: "yes"
+
 # 결제 데이터베이스 설정
 paymentdb:
   enabled: true
   fullname: paymentdb-postgresql
   namespaceOverride: "database"
   auth:
+    username: paymentuser
+    password: paymentpassword
+    database: paymentdb
     existingSecret: "payment-db-credentials"
     secretKeys:
       adminPasswordKey: "postgres-password"
@@ -70,10 +76,11 @@ paymentdb:
         cpu: 500m
     persistence:
       existingClaim: ""
-      forcePassword: false
-      extraEnvVars:
-        - name: POSTGRESQL_UPGRADE_BYPASS_PASSWORD_CHECK
-          value: "yes"
+    forcePassword: false
+    extraEnvVars:
+      - name: POSTGRESQL_UPGRADE_BYPASS_PASSWORD_CHECK
+        value: "yes"
+
 # Kafka 설정
 kafka:
   enabled: true
